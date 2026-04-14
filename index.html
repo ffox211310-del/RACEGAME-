@@ -2,45 +2,40 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>連打レース進化版</title>
+<title>連打レース完成版</title>
 <style>
 body {
   margin: 0;
   overflow: hidden;
+  font-family: sans-serif;
 }
 
-/* 地面（ストライプ） */
+/* ゲーム画面 */
 #game {
   width: 100vw;
   height: 100vh;
   position: relative;
-  background: repeating-linear-gradient(
-    to bottom,
-    #555 0px,
-    #555 40px,
-    #666 40px,
-    #666 80px
-  );
+  background: url("Road.png");
+  background-size: cover;
 }
 
+/* 車（絵文字） */
 .car {
-  width: 50px;
-  height: 80px;
   position: absolute;
+  font-size: 40px;
 }
 
 #player {
-  background: red;
   left: 30%;
   bottom: 100px;
 }
 
 #enemy {
-  background: blue;
   left: 60%;
   bottom: 100px;
 }
 
+/* UI */
 #ui {
   position: absolute;
   top: 10px;
@@ -48,20 +43,43 @@ body {
   color: white;
   font-size: 20px;
 }
+
+/* スタート画面 */
+#startScreen, #countdown, #result {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  z-index: 10;
+}
 </style>
 </head>
 <body>
 
 <div id="game">
-  <div id="player" class="car"></div>
-  <div id="enemy" class="car"></div>
-  <div id="ui">連打で加速！</div>
+  <div id="player" class="car">🏎️</div>
+  <div id="enemy" class="car">🚌</div>
+  <div id="ui"></div>
+
+  <div id="startScreen">タップでSTART</div>
+  <div id="countdown" style="display:none;"></div>
+  <div id="result" style="display:none;"></div>
 </div>
 
 <script>
 const game = document.getElementById("game");
 const player = document.getElementById("player");
 const enemy = document.getElementById("enemy");
+const ui = document.getElementById("ui");
+
+const startScreen = document.getElementById("startScreen");
+const countdownEl = document.getElementById("countdown");
+const resultEl = document.getElementById("result");
 
 let playerSpeed = 0;
 let enemySpeed = 5;
@@ -70,23 +88,47 @@ let distancePlayer = 0;
 let distanceEnemy = 0;
 
 let bgOffset = 0;
+let running = false;
+
+// スタート
+startScreen.addEventListener("touchstart", startGame);
+
+function startGame() {
+  startScreen.style.display = "none";
+  countdownEl.style.display = "flex";
+
+  let count = 3;
+  countdownEl.innerText = count;
+
+  let timer = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownEl.innerText = count;
+    } else if (count === 0) {
+      countdownEl.innerText = "GO!";
+    } else {
+      clearInterval(timer);
+      countdownEl.style.display = "none";
+      running = true;
+      gameLoop();
+    }
+  }, 1000);
+}
 
 // 連打
 document.addEventListener("touchstart", () => {
-  playerSpeed += 1.5;
+  if (running) playerSpeed += 1.5;
 });
 
 // ループ
 function gameLoop() {
+  if (!running) return;
 
-  // 減速
   playerSpeed *= 0.98;
   if (playerSpeed > 15) playerSpeed = 15;
 
-  // 敵
-  enemySpeed = 5 + Math.sin(Date.now() / 300) * 1.5;
+  enemySpeed = 5 + Math.sin(Date.now()/300)*1.5;
 
-  // 距離
   distancePlayer += playerSpeed;
   distanceEnemy += enemySpeed;
 
@@ -94,22 +136,31 @@ function gameLoop() {
   bgOffset += playerSpeed;
   game.style.backgroundPositionY = bgOffset + "px";
 
-  // 車の位置（差で前後）
+  // 位置調整
   let diff = distancePlayer - distanceEnemy;
-
   player.style.bottom = (100 + diff * 0.1) + "px";
   enemy.style.bottom = (100 - diff * 0.1) + "px";
 
   // UI
-  document.getElementById("ui").innerText =
+  ui.innerText =
     "自分: " + Math.floor(distancePlayer) + "m\n" +
-    "敵: " + Math.floor(distanceEnemy) + "m\n" +
-    "速度: " + playerSpeed.toFixed(1);
+    "敵: " + Math.floor(distanceEnemy) + "m";
+
+  // ゴール
+  if (distancePlayer >= 1000 || distanceEnemy >= 1000) {
+    running = false;
+    resultEl.style.display = "flex";
+
+    if (distancePlayer > distanceEnemy) {
+      resultEl.innerText = "勝ち！🏆";
+    } else {
+      resultEl.innerText = "負け…";
+    }
+    return;
+  }
 
   requestAnimationFrame(gameLoop);
 }
-
-gameLoop();
 </script>
 
 </body>
