@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>シンプルレース</title>
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+}
+
+#game {
+  width: 100vw;
+  height: 100vh;
+  background: gray;
+  position: relative;
+}
+
+.car {
+  width: 50px;
+  height: 80px;
+  position: absolute;
+  bottom: 50px;
+}
+
+#player {
+  background: red;
+  left: 30%;
+}
+
+#enemy {
+  background: blue;
+  left: 60%;
+}
+
+#ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 20px;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="player" class="car"></div>
+  <div id="enemy" class="car"></div>
+  <div id="ui">タップで加速！</div>
+</div>
+
+<script>
+let playerSpeed = 0;
+let enemySpeed = 2;
+let distancePlayer = 0;
+let distanceEnemy = 0;
+
+let pressing = false;
+
+// タッチ操作
+document.addEventListener("touchstart", () => {
+  pressing = true;
+});
+
+document.addEventListener("touchend", () => {
+  pressing = false;
+});
+
+// ゲームループ
+function gameLoop() {
+
+  // プレイヤー加速
+  if (pressing) {
+    playerSpeed += 0.2;
+  } else {
+    playerSpeed -= 0.1;
+  }
+
+  // 制限
+  if (playerSpeed < 0) playerSpeed = 0;
+  if (playerSpeed > 10) playerSpeed = 10;
+
+  // 敵は一定速度
+  enemySpeed = 5;
+
+  // 距離加算
+  distancePlayer += playerSpeed;
+  distanceEnemy += enemySpeed;
+
+  // UI表示
+  document.getElementById("ui").innerText =
+    "自分: " + Math.floor(distancePlayer) +
+    "m / 敵: " + Math.floor(distanceEnemy) + "m";
+
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
