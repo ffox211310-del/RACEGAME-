@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>シンプルレース</title>
+<title>連打レース</title>
 <style>
 body {
   margin: 0;
@@ -48,51 +48,42 @@ body {
 <div id="game">
   <div id="player" class="car"></div>
   <div id="enemy" class="car"></div>
-  <div id="ui">タップで加速！</div>
+  <div id="ui">連打で加速！</div>
 </div>
 
 <script>
 let playerSpeed = 0;
-let enemySpeed = 2;
+let enemySpeed = 4;
+
 let distancePlayer = 0;
 let distanceEnemy = 0;
 
-let pressing = false;
-
-// タッチ操作
+// 連打で加速
 document.addEventListener("touchstart", () => {
-  pressing = true;
-});
-
-document.addEventListener("touchend", () => {
-  pressing = false;
+  playerSpeed += 1.5; // ←連打パワー
 });
 
 // ゲームループ
 function gameLoop() {
 
-  // プレイヤー加速
-  if (pressing) {
-    playerSpeed += 0.2;
-  } else {
-    playerSpeed -= 0.1;
-  }
+  // 減速（摩擦）
+  playerSpeed *= 0.98;
 
-  // 制限
-  if (playerSpeed < 0) playerSpeed = 0;
-  if (playerSpeed > 10) playerSpeed = 10;
+  // 上限
+  if (playerSpeed > 15) playerSpeed = 15;
 
-  // 敵は一定速度
-  enemySpeed = 5;
+  // 敵は一定
+  enemySpeed = 6;
 
   // 距離加算
   distancePlayer += playerSpeed;
   distanceEnemy += enemySpeed;
 
-  // UI表示
+  // 表示
   document.getElementById("ui").innerText =
-    "自分: " + Math.floor(distancePlayer) +
-    "m / 敵: " + Math.floor(distanceEnemy) + "m";
+    "自分: " + Math.floor(distancePlayer) + "m\n" +
+    "敵: " + Math.floor(distanceEnemy) + "m\n" +
+    "速度: " + playerSpeed.toFixed(1);
 
   requestAnimationFrame(gameLoop);
 }
