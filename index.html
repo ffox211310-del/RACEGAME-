@@ -2,36 +2,43 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>連打レース</title>
+<title>連打レース進化版</title>
 <style>
 body {
   margin: 0;
   overflow: hidden;
-  background: black;
 }
 
+/* 地面（ストライプ） */
 #game {
   width: 100vw;
   height: 100vh;
-  background: gray;
   position: relative;
+  background: repeating-linear-gradient(
+    to bottom,
+    #555 0px,
+    #555 40px,
+    #666 40px,
+    #666 80px
+  );
 }
 
 .car {
   width: 50px;
   height: 80px;
   position: absolute;
-  bottom: 50px;
 }
 
 #player {
   background: red;
   left: 30%;
+  bottom: 100px;
 }
 
 #enemy {
   background: blue;
   left: 60%;
+  bottom: 100px;
 }
 
 #ui {
@@ -52,34 +59,48 @@ body {
 </div>
 
 <script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const enemy = document.getElementById("enemy");
+
 let playerSpeed = 0;
-let enemySpeed = 4;
+let enemySpeed = 5;
 
 let distancePlayer = 0;
 let distanceEnemy = 0;
 
-// 連打で加速
+let bgOffset = 0;
+
+// 連打
 document.addEventListener("touchstart", () => {
-  playerSpeed += 1.5; // ←連打パワー
+  playerSpeed += 1.5;
 });
 
-// ゲームループ
+// ループ
 function gameLoop() {
 
-  // 減速（摩擦）
+  // 減速
   playerSpeed *= 0.98;
-
-  // 上限
   if (playerSpeed > 15) playerSpeed = 15;
 
-  // 敵は一定
-  enemySpeed = 6;
+  // 敵
+  enemySpeed = 5 + Math.sin(Date.now() / 300) * 1.5;
 
-  // 距離加算
+  // 距離
   distancePlayer += playerSpeed;
   distanceEnemy += enemySpeed;
 
-  // 表示
+  // 背景スクロール
+  bgOffset += playerSpeed;
+  game.style.backgroundPositionY = bgOffset + "px";
+
+  // 車の位置（差で前後）
+  let diff = distancePlayer - distanceEnemy;
+
+  player.style.bottom = (100 + diff * 0.1) + "px";
+  enemy.style.bottom = (100 - diff * 0.1) + "px";
+
+  // UI
   document.getElementById("ui").innerText =
     "自分: " + Math.floor(distancePlayer) + "m\n" +
     "敵: " + Math.floor(distanceEnemy) + "m\n" +
